@@ -1,0 +1,8 @@
+node_modules
+config.json
+.eslintrc.json
+.dockerignore
+icon.psd
+icon.png
+package-lock.json
+Dockerfile
