@@ -37,11 +37,11 @@ class MetalBot {
 
     async #generateAudioResource(link) {
         const info = await ytdl.getBasicInfo(link);
-    
         const title = info.videoDetails.title;
     
         const stream = ytdl(link, { 
             filter: 'audioonly',
+            quality: 'highest',
             dlChunkSize: 0
         });
     
