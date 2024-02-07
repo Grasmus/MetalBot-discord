@@ -3,16 +3,29 @@ class QueueResouce {
 
     constructor() {}
 
-    add(resource) {
-        this.#queue[this.#queue.length] = resource;
+    addToEnd(resource) {
+        this.#queue.push(resource);
+    }
+
+    addArrayToEnd(resourceArray) {
+        for (let index = 0; index < resourceArray.length; index++) {
+            this.#queue.push(resourceArray[index])
+        }
+    }
+
+    addToStart(resource) {
+        this.#queue.unshift(resource)
+    }
+
+    addArrayToStart(resourceArray) {
+        for (let index = resourceArray.length; index > 0; index--) {
+            this.#queue.unshift(resourceArray[index])
+        }
     }
 
     getNext() {
         if(this.#queue.length) {
-            const resource = this.#queue[0];
-            this.#queue.splice(0, 1);
-
-            return resource;
+            return this.#queue.shift();
         }
         
         return null;

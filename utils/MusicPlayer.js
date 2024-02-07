@@ -1,7 +1,15 @@
 const { createAudioPlayer, AudioPlayerStatus, NoSubscriberBehavior } = require('@discordjs/voice');
 
+const MusicPlayerStates = {
+    Idle: 'Idle',
+    Playing: 'Playing',
+    Paused: 'Paused',
+    Error: 'Error'
+}
+
 class MusicPlayer {
     #player;
+    #currentState = MusicPlayerStates.Idle;
 
     constructor () {
         this.#player = createAudioPlayer({
@@ -9,26 +17,33 @@ class MusicPlayer {
                 noSubscriber: NoSubscriberBehavior.Pause,
             },
         });
+
+        this.#player.on(AudioPlayerStatus.Idle, () => {
+            this.#currentState = MusicPlayerStates.Idle
+        })
         
         this.#player.on(AudioPlayerStatus.Buffering, () => {
             console.log('Buffering...');
         });
         
         this.#player.on(AudioPlayerStatus.AutoPaused, () => {
-            console.log('Auto paused');
+            console.log('Autopaused');
         });
         
         this.#player.on(AudioPlayerStatus.Playing, () => {
             console.log('The audio player has started playing!');
+            this.#currentState = MusicPlayerStates.Playing
         });
         
         this.#player.on(AudioPlayerStatus.Paused, () => {
             console.log('The audio player is paused!');
+            this.#currentState = MusicPlayerStates.Paused
         });
         
         this.#player.on('error', error => {
             console.error(`player:`);
             console.error(error);
+            his.#currentState = MusicPlayerStates.Error
         });
     }
 
@@ -48,10 +63,13 @@ class MusicPlayer {
         this.#player.play(resource);
     }
 
-    getPlayer()
-    {
+    getPlayer() {
         return this.#player;
+    }
+
+    getCurrentState() {
+        return this.#currentState
     }
 }
 
-module.exports = { MusicPlayer };
+module.exports = { MusicPlayer, MusicPlayerStates };

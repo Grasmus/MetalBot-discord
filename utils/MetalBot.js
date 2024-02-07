@@ -1,4 +1,4 @@
-const { MusicPlayer } = require('./MusicPlayer');
+const { MusicPlayer, MusicPlayerStates } = require('./MusicPlayer');
 const { QueueResouce } = require('./QueueResource');
 const { Validator } = require('../validation/validator');
 const ytdl = require('ytdl-core');
@@ -109,9 +109,7 @@ class MetalBot {
                 return 'You should be in the voice channel!';
             }
 
-            this.#queue.clear();
-
-            const message = await this.queue(link);
+            const message = await this.addToQueue(link, voiceChannel, 'start');
 
             return message + '\n' + this.next(voiceChannel);
         }
@@ -146,22 +144,34 @@ class MetalBot {
         }
     }
 
-    async queue(link) {
+    async addToQueue(link, voiceChannel, addType = 'end') {
         if (this.#validator.validateYoutubeLink(link) === false) {
             return 'Invalid link';
         }
         else {
             if (link.includes('&list')) {
                 const playlist = await ytpl(link, { limit: 15 });
+                const playlistQueue = []
                 
                 for (let index = 0; index < playlist.items.length; index++) {
                     const resource = await this.#generateAudioResource(playlist.items[index].shortUrl);
 
-                    this.#queue.add(resource);
+                    playlistQueue.push(resource);
 
                     const message = 'Added to queue: ' + resource.metadata.title;
 
                     console.log(message);
+                }
+
+                if (addType == "start") {
+                    this.#queue.addArrayToStart(playlistQueue);
+                } else {
+                    this.#queue.addArrayToEnd(playlistQueue)
+                }
+
+                if(this.#musicPlayer.getCurrentState() != MusicPlayerStates.Error &&
+                    this.#musicPlayer.getCurrentState() != MusicPlayerStates.Playing) {
+                        return 'Queued ' + playlist.items.length + ' songs' + '\n' + this.next(voiceChannel);
                 }
 
                 return 'Queued ' + playlist.items.length + ' songs';
@@ -169,11 +179,19 @@ class MetalBot {
             
             const resource = await this.#generateAudioResource(link);
 
-            this.#queue.add(resource);
+            if (addType == "start") {
+                this.#queue.addToStart(resource)
+            } else {
+                this.#queue.addToEnd(resource)
+            }
 
             const message = 'Added to queue: ' + resource.metadata.title;
 
             console.log(message);
+
+            if (this.#musicPlayer.getCurrentState() == MusicPlayerStates.Idle) {
+                return message + '\n' + this.next(voiceChannel);
+            }
 
             return message;
         }
@@ -183,7 +201,7 @@ class MetalBot {
         this.#musicPlayer.stop();
         this.#queue.clear();
 
-        return 'Stoped';
+        return 'Stopped';
     }
 
     unpause() {
@@ -202,7 +220,7 @@ class MetalBot {
             return 'Disconnected';
         }
 
-        return 'No connection available';
+        return 'No connection is available';
     }
 }
 

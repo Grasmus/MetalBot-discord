@@ -11,11 +11,15 @@ module.exports = {
                 .setRequired(true)),
     async execute(interaction)
     {
-        interaction.deferReply();
+        await interaction.deferReply();
 
-        const link = interaction.options.getString('link');
-        const message = await metalBot.queue(link);
-
-        interaction.editReply(message);
+        try {
+            const link = interaction.options.getString('link');
+            const message = await metalBot.addToQueue(link, interaction.member.voice);
+            await interaction.editReply(message);
+        } catch(error) {
+            console.log(error)
+            await interaction.editReply('Internal error has been occured');
+        }
     },
 };
