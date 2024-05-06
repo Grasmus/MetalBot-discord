@@ -43,7 +43,7 @@ class MusicPlayer {
         this.#player.on('error', error => {
             console.error(`player:`);
             console.error(error);
-            his.#currentState = MusicPlayerStates.Error
+            this.#currentState = MusicPlayerStates.Error
         });
     }
 
