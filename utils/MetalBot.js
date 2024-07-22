@@ -1,7 +1,7 @@
 const { MusicPlayer, MusicPlayerStates } = require('./MusicPlayer');
 const { QueueResouce } = require('./QueueResource');
 const { Validator } = require('../validation/validator');
-const ytdl = require('ytdl-core');
+const ytdl = require('@distube/ytdl-core');
 const { 
     createAudioResource, 
     StreamType, 
@@ -9,7 +9,6 @@ const {
     joinVoiceChannel, 
     VoiceConnectionStatus
 } = require('@discordjs/voice');
-const ytpl = require('ytpl');
 
 class MetalBot {
     #musicPlayer = new MusicPlayer();
