@@ -2,6 +2,7 @@ const { MusicPlayer, MusicPlayerStates } = require('./MusicPlayer');
 const { QueueResouce } = require('./QueueResource');
 const { Validator } = require('../validation/validator');
 const ytdl = require('@distube/ytdl-core');
+const ytpl = require("@distube/ytpl");
 const { 
     createAudioResource, 
     StreamType, 
