@@ -18,7 +18,7 @@ class QueueResouce {
     }
 
     addArrayToStart(resourceArray) {
-        for (let index = resourceArray.length; index > 0; index--) {
+        for (let index = resourceArray.length - 1; index >= 0; index--) {
             this.#queue.unshift(resourceArray[index])
         }
     }

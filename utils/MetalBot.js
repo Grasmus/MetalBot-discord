@@ -21,13 +21,16 @@ class MetalBot {
     constructor () {}
 
     initialize() {
-        this.#musicPlayer.getPlayer().on(AudioPlayerStatus.Idle, () => {
-            const resource = this.#queue.getNext();
-        
-            if (resource) {
+        this.#musicPlayer.getPlayer().on(AudioPlayerStatus.Idle, async () => {
+            const link = this.#queue.getNext();    
+
+            if (link) {
+                const basicInfo = await ytdl.getBasicInfo(link);
+                const title = basicInfo.player_response.videoDetails.title;
+                const resource = this.#generateAudioResource(link, title)
+
                 this.#musicPlayer.play(resource);
-        
-                this.#currentChannel.send('Now playing: ' + resource.metadata.title);
+                this.#currentChannel.send('Now playing: ' + title);
             }
             else {
                 console.log('Nothing to play here...');
@@ -35,10 +38,7 @@ class MetalBot {
         });
     }
 
-    async #generateAudioResource(link) {
-        const info = await ytdl.getBasicInfo(link);
-        const title = info.videoDetails.title;
-    
+    #generateAudioResource(link, title) {
         const stream = ytdl(link, { 
             filter: 'audioonly',
             quality: 'highest',
@@ -56,7 +56,7 @@ class MetalBot {
             console.error(`resource:`);
             console.error(error);
         });
-    
+
         return resource;
     }
 
@@ -94,7 +94,7 @@ class MetalBot {
 
         if(subscription)
         {
-            console.log('subscribed!');
+            console.log('Subscribed');
         }
     }
 
@@ -106,19 +106,23 @@ class MetalBot {
             this.#currentChannel = textChannel;
 
             if (voiceChannel.channelId === null) {
-                return 'You should be in the voice channel!';
-            }
+                return 'You should be in voice channel!';
+            } 
 
             const message = await this.addToQueue(link, voiceChannel, 'start');
 
-            return message + '\n' + this.next(voiceChannel);
+            return message;
         }
     }
 
-    next(voiceChannel) {
-        const resource = this.#queue.getNext();
+    async next(voiceChannel) {
+        const link = this.#queue.getNext();
 
-        if (resource) {
+        if (link) {
+            const basicInfo = await ytdl.getBasicInfo(link);
+            const title = basicInfo.player_response.videoDetails.title;
+            const resource = this.#generateAudioResource(link, title);
+
             if (this.#currentConnection) {
                 this.#musicPlayer.stop();
                 this.#musicPlayer.play(resource);
@@ -128,7 +132,7 @@ class MetalBot {
                 this.#musicPlayer.play(resource);
             }
 
-            return 'Now playing: ' + resource.metadata.title;
+            return 'Now playing: ' + title;
         }
         else {
             return 'Queue is empty';
@@ -154,13 +158,7 @@ class MetalBot {
                 const playlistQueue = []
                 
                 for (let index = 0; index < playlist.items.length; index++) {
-                    const resource = await this.#generateAudioResource(playlist.items[index].shortUrl);
-
-                    playlistQueue.push(resource);
-
-                    const message = 'Added to queue: ' + resource.metadata.title;
-
-                    console.log(message);
+                    playlistQueue.push(playlist.items[index].shortUrl);
                 }
 
                 if (addType == "start") {
@@ -169,28 +167,27 @@ class MetalBot {
                     this.#queue.addArrayToEnd(playlistQueue)
                 }
 
-                if(this.#musicPlayer.getCurrentState() != MusicPlayerStates.Error &&
-                    this.#musicPlayer.getCurrentState() != MusicPlayerStates.Playing) {
-                        return 'Queued ' + playlist.items.length + ' songs' + '\n' + this.next(voiceChannel);
-                }
+                const message = 'Queued ' + playlist.items.length + ' songs' + '\n' + await this.next(voiceChannel);
 
-                return 'Queued ' + playlist.items.length + ' songs';
+                console.log(message);
+
+                return message
             }
             
-            const resource = await this.#generateAudioResource(link);
+            const basicInfo = await ytdl.getBasicInfo(link);
 
             if (addType == "start") {
-                this.#queue.addToStart(resource)
+                this.#queue.addToStart(link)
             } else {
-                this.#queue.addToEnd(resource)
+                this.#queue.addToEnd(link)
             }
 
-            const message = 'Added to queue: ' + resource.metadata.title;
+            const message = 'Added to queue: ' + basicInfo.player_response.videoDetails.title;
 
             console.log(message);
 
             if (this.#musicPlayer.getCurrentState() == MusicPlayerStates.Idle) {
-                return message + '\n' + this.next(voiceChannel);
+                return message + '\n' + await this.next(voiceChannel);
             }
 
             return message;

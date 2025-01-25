@@ -11,11 +11,12 @@
   "dependencies": {
     "@discordjs/opus": "github:discordjs/opus",
     "@discordjs/voice": "^0.16.0",
-    "@distube/ytdl-core": "^4.14.4",
+    "@distube/ytdl-core": "^4.15.9",
     "@distube/ytpl": "^1.2.1",
     "discord.js": "^14.11.0",
     "ffmpeg-static": "^5.1.0",
     "libsodium-wrappers": "^0.7.11",
+    "node": "^20.16.0",
     "ytdl-core": "^4.11.5",
     "ytpl": "^2.3.0"
   },

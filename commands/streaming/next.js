@@ -7,8 +7,10 @@ module.exports = {
         .setDescription('Play next song from queue'),
     async execute(interaction)
     {
-        const message = metalBot.next(interaction.member.voice);
+        await interaction.deferReply();
 
-        interaction.reply(message);
+        const message = await metalBot.next(interaction.member.voice);
+
+        await interaction.editReply(message);
     },
 };
