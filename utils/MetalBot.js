@@ -10,6 +10,7 @@ const {
     joinVoiceChannel, 
     VoiceConnectionStatus
 } = require('@discordjs/voice');
+const fs = require("fs");
 
 class MetalBot {
     #musicPlayer = new MusicPlayer();
@@ -17,15 +18,19 @@ class MetalBot {
     #validator = new Validator();
     #currentChannel;
     #currentConnection;
+    #agent;
 
-    constructor () {}
+    constructor () {
+        this.#agent = ytdl.createAgent(JSON.parse(fs.readFileSync("cookies.json")));
+    }
 
     initialize() {
         this.#musicPlayer.getPlayer().on(AudioPlayerStatus.Idle, async () => {
             const link = this.#queue.getNext();    
+            const agent = this.#agent;
 
             if (link) {
-                const basicInfo = await ytdl.getBasicInfo(link);
+                const basicInfo = await ytdl.getBasicInfo(link, { agent });
                 const title = basicInfo.player_response.videoDetails.title;
                 const resource = this.#generateAudioResource(link, title)
 
@@ -117,9 +122,10 @@ class MetalBot {
 
     async next(voiceChannel) {
         const link = this.#queue.getNext();
+        const agent = this.#agent;
 
         if (link) {
-            const basicInfo = await ytdl.getBasicInfo(link);
+            const basicInfo = await ytdl.getBasicInfo(link, { agent });
             const title = basicInfo.player_response.videoDetails.title;
             const resource = this.#generateAudioResource(link, title);
 
@@ -174,7 +180,8 @@ class MetalBot {
                 return message
             }
             
-            const basicInfo = await ytdl.getBasicInfo(link);
+            const agent = this.#agent;
+            const basicInfo = await ytdl.getBasicInfo(link, { agent });
 
             if (addType == "start") {
                 this.#queue.addToStart(link)
